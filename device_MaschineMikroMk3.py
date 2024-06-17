@@ -12,10 +12,11 @@ import transport
 #----------------------------------------OVERRIDES----------------------------------------#
 """
 
-shiftToggle = 0x0
+shiftToggle
 
 def OnInit():
-	shiftToggle = 0x0
+	shiftToggle = 0x00
+	print("smthn")
 
 def OnMidiMsg(event):
 	global shiftToggle
@@ -24,58 +25,75 @@ def OnMidiMsg(event):
 
 
 	if event.midiId == 0xB0:
-		if event.data1 == 0x07:
-			focused = {0:0, 1:1, 2:2, 3:3, 4:4}
-		elif event.data1 == 0x37:
-			CustomTransportMessage(110) # Metronome Toggle
+		handledEvent = {
+			0x17: play(event.data2)
+			0x19: record()
+		}
+
+		func = handledEvent.get(event.data1, default)
+
+	
+def play(data2):
+	if data2 == 0x7F:
+		transport.start()
+	else:
+		transport.globalTransport(midi.FPT_Play, 10)
+
+def record():
+	transport.record()
+#
+#		if event.data1 == 0x07:
+#			focused = {0:0, 1:1, 2:2, 3:3, 4:4}
+#		elif event.data1 == 0x37:
+#			CustomTransportMessage(110) # Metronome Toggle
 			#if ui.getFocusedFormID() == {}
-		elif event.data1 == 0x26:
-			shiftToggle = event.data2 # Shift Toggle (Hold)
-			print(shiftToggle)
-		elif event.data1 == 0x51:
-			CustomTransportMessage(64)
-		elif event.data1 == 0x52:
-			CustomTransportMessage(66)
-		elif event.data1 == 0x54:
-			CustomTransportMessage(68)
-		elif event.data1 == 0x53:
-			CustomTransportMessage(65)
-		else:
-			if shiftToggle == 0x0:
-				if event.data1 == 0x28:
-					windowToggleAndFocus(4) # Browser Focus
-				elif event.data1 == 0x27:
-					CustomTransportMessage(67) # Plugin Picker
-				else:
-					switcher = {
-						0x35: transport.setLoopMode, # Pattern / Playlist Loop
-						0x39: transport.start, # Play / Pause
-						0x3A: transport.record, # Record
-						0x3B: transport.stop, # Stop
-					}
+#		elif event.data1 == 0x26:
+#			shiftToggle = event.data2 # Shift Toggle (Hold)
+#			print(shiftToggle)
+#		elif event.data1 == 0x51:
+#			CustomTransportMessage(64)
+#		elif event.data1 == 0x52:
+#			CustomTransportMessage(66)
+#		elif event.data1 == 0x54:
+#			CustomTransportMessage(68)
+#		elif event.data1 == 0x53:
+#			CustomTransportMessage(65)
+#		else:
+#			if shiftToggle == 0x0:
+#				if event.data1 == 0x28:
+#					windowToggleAndFocus(4) # Browser Focus
+#				elif event.data1 == 0x27:
+#					CustomTransportMessage(67) # Plugin Picker
+#				else:
+#					switcher = {
+#						0x35: transport.setLoopMode, # Pattern / Playlist Loop
+#						0x39: transport.start, # Play / Pause
+#						0x3A: transport.record, # Record
+#						0x3B: transport.stop, # Stop
+#					}
+#
+#					func = switcher.get(event.data1, default)
+#
+#					func()
+#			else:
+#				if event.data1 == 0x3A:
+#					CustomTransportMessage(115) # Countdown
+#					ui.setHintMsg("Countdown Before Start")
+#				elif event.data1 == 0x27:
+#					CustomTransportMessage() # Plugin Picker
+#					ui.setHintMsg("Plugin Picker")
+#				elif event.data1 == 0x35:
+#					CustomTransportMessage(113) # Loop Recording
+#					ui.setHintMsg("Loop Recording")
+#				else:
+#					switcher = {
+#						0x39: transport.start, # Play / Pause
+#						0x3B: transport.stop,  # Stop
+#					}
 
-					func = switcher.get(event.data1, default)
+#					func = switcher.get(event.data1, default)
 
-					func()
-			else:
-				if event.data1 == 0x3A:
-					CustomTransportMessage(115) # Countdown
-					ui.setHintMsg("Countdown Before Start")
-				elif event.data1 == 0x27:
-					CustomTransportMessage() # Plugin Picker
-					ui.setHintMsg("Plugin Picker")
-				elif event.data1 == 0x35:
-					CustomTransportMessage(113) # Loop Recording
-					ui.setHintMsg("Loop Recording")
-				else:
-					switcher = {
-						0x39: transport.start, # Play / Pause
-						0x3B: transport.stop,  # Stop
-					}
-
-					func = switcher.get(event.data1, default)
-
-					func()
+#					func()
 
 		
 
