@@ -12,35 +12,55 @@ import transport
 #----------------------------------------OVERRIDES----------------------------------------#
 """
 
-shiftToggle
-
-def OnInit():
-	shiftToggle = 0x00
-	print("smthn")
+shiftToggle = 0x00
 
 def OnMidiMsg(event):
-	global shiftToggle
-
 	event.handled = False
-
 
 	if event.midiId == 0xB0:
 		handledEvent = {
-			0x17: play(event.data2)
-			0x19: record()
+			0x01: lambda: changeShiftToggle(event.data2),
+			0x03: lambda: browser(event.data2),
+			0x17: lambda: transport.globalTransport(midi.FPT_Play, int(event.data2 > 0) * 2, event.pmeFlags, midi.GT_All),
+			0x18: record,
+			0x19: transport.stop,
+			0x28: lambda: encoder(event.data2)
 		}
 
 		func = handledEvent.get(event.data1, default)
 
-	
-def play(data2):
-	if data2 == 0x7F:
-		transport.start()
+	if callable(func):
+		func()
 	else:
-		transport.globalTransport(midi.FPT_Play, 10)
+		default()
+
+def changeShiftToggle(data2):
+	global shiftToggle 
+	shiftToggle = data2
 
 def record():
-	transport.record()
+	global shiftToggle
+	if bool(int(shiftToggle)):
+		transport.globalTransport(midi.FPT_CountDown, 1)
+	else:
+		transport.record()
+
+def browser(data2):
+	print(data2)
+	if bool(int(data2)):
+		ui.showWindow(4)
+		ui.setFocused(4)
+	else:
+		ui.hideWindow(4)
+
+def encoder(data2):
+	focusedWindow = {
+		ui.getFocused(1): 1,
+		ui.getFocused(2): 2,
+		ui.getFocused(3): 3,
+		ui.getFocused(4): 4,
+	}
+
 #
 #		if event.data1 == 0x07:
 #			focused = {0:0, 1:1, 2:2, 3:3, 4:4}
